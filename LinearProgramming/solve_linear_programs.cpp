@@ -42,10 +42,10 @@ int main() {
     {
         // 3. Test Maximization
         Optimizer optimizer;
-        optimizer.AddLTConstraint({1, 2}, 8);
-        optimizer.AddLTConstraint({3, 2}, 12);
-        optimizer.AddGTConstraint({1, 3}, 3);
-        optimizer.MaximizeCost({1, 1});
+        optimizer.AddLTConstraint({1, 1}, 7);
+        optimizer.AddLTConstraint({1, 2}, 12);
+        optimizer.AddLTConstraint({2, 1}, 12);
+        optimizer.MaximizeCost({20, 30});
         auto result = optimizer.Solve();
         PrintSolution(3, result);
     }
@@ -60,23 +60,33 @@ int main() {
         PrintSolution(4, result);
     }
     {
-        // 5. Test Minimization
+        // 5. Test Maximization
         Optimizer optimizer;
-        optimizer.AddGTConstraint({1, 2}, 40);
-        optimizer.AddGTConstraint({1, 1}, 30);
-        optimizer.MinimizeCost({12, 16});
+        optimizer.AddGTConstraint({1, 1}, 1);
+        optimizer.AddLTConstraint({1, 2}, 6);
+        optimizer.AddLTConstraint({2, 1}, 6);
+        optimizer.MaximizeCost({10, 15});
         auto result = optimizer.Solve();
         PrintSolution(5, result);
     }
     {
         // 6. Test Minimization
         Optimizer optimizer;
+        optimizer.AddGTConstraint({1, 2}, 40);
+        optimizer.AddGTConstraint({1, 1}, 30);
+        optimizer.MinimizeCost({12, 16});
+        auto result = optimizer.Solve();
+        PrintSolution(6, result);
+    }
+    {
+        // 7. Test Minimization
+        Optimizer optimizer;
         optimizer.AddGTConstraint({1, 1, 1}, 6);
         optimizer.AddGTConstraint({0, 1, 2}, 8);
         optimizer.AddGTConstraint({-1, 2, 2}, 4);
         optimizer.MinimizeCost({2, 10, 8});
         auto result = optimizer.Solve();
-        PrintSolution(6, result);
+        PrintSolution(7, result);
     }
     {
         // Test SimplexMethod class interface directly
@@ -88,7 +98,7 @@ int main() {
         cost << 3, 5;
         SimplexMethod opt(true /* maximize */, C, cl, cost);
         auto result = opt.Solve();
-        PrintSolution(7, result);
+        PrintSolution(8, result);
     }
     return 0;
 }

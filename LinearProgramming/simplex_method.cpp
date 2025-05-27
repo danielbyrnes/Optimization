@@ -86,7 +86,7 @@ bool SimplexMethod::ExecuteSimplexPreprocessing() {
 std::tuple<Eigen::VectorXd, uint32_t> SimplexMethod::ExecuteSimplex(Eigen::MatrixXd& tableau) {
     uint32_t nc = tableau.rows() - 1;
     uint32_t nv = tableau.cols() - 1;
-    for (uint32_t i = 0; i < 4; ++i) {
+    while (true) {
         // Find the pivot column
         Eigen::Index pivot_col;
         // For maximization problems select the column with the
