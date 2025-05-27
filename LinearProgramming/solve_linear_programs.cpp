@@ -15,7 +15,7 @@ void PrintSolution(uint32_t test_number, const std::optional<std::tuple<Eigen::V
 
 int main() {
     {
-        // Test Optimizer
+        // 1. Test Maximization
         Optimizer optimizer;
         optimizer.AddLTConstraint({1, 0}, 4);
         optimizer.AddLTConstraint({0, 2}, 12);
@@ -26,7 +26,7 @@ int main() {
         PrintSolution(1, result);
     }
     {
-        // Test Optimizer
+        // 2. Test Maximization
         Optimizer optimizer;
         optimizer.AddLTConstraint({1, 2}, 8);
         optimizer.AddLTConstraint({3, 2}, 12);
@@ -36,25 +36,46 @@ int main() {
         PrintSolution(2, result);
     }
     {
-        // Test Minimization Optimizer
+        // 3. Test Maximization
         Optimizer optimizer;
-        optimizer.AddGTConstraint({1, 1}, 4);
-        optimizer.AddLTConstraint({2, -1}, -1);
-        optimizer.MinimizeCost({2, 3});
+        optimizer.AddLTConstraint({1, 2}, 8);
+        optimizer.AddLTConstraint({3, 2}, 12);
+        optimizer.AddGTConstraint({1, 3}, 3);
+        optimizer.MaximizeCost({1, 1});
         auto result = optimizer.Solve();
         PrintSolution(3, result);
     }
     {
-        // Test Minimization Optimizer
+        // 4. Test Maximization
+        Optimizer optimizer;
+        optimizer.AddLTConstraint({1, 1}, 8);
+        optimizer.AddLTConstraint({2, 1}, 12);
+        optimizer.AddLTConstraint({1, 2}, 14);
+        optimizer.MaximizeCost({2, 3});
+        auto result = optimizer.Solve();
+        PrintSolution(4, result);
+    }
+    {
+        // 5. Test Minimization
         Optimizer optimizer;
         optimizer.AddGTConstraint({1, 2}, 40);
         optimizer.AddGTConstraint({1, 1}, 30);
         optimizer.MinimizeCost({12, 16});
         auto result = optimizer.Solve();
-        PrintSolution(4, result);
+        PrintSolution(5, result);
     }
     {
-        // Test Simplex Method class directly
+        // 6. Test Minimization
+        Optimizer optimizer;
+        optimizer.AddGTConstraint({1, 1, 1}, 6);
+        optimizer.AddGTConstraint({0, 1, 2}, 8);
+        optimizer.AddGTConstraint({-1, 2, 2}, 4);
+        optimizer.MinimizeCost({2, 10, 8});
+        auto result = optimizer.Solve();
+        PrintSolution(6, result);
+    }
+    {
+        // Test SimplexMethod class directly
         Eigen::MatrixXd C(3,2); // Constraint Matrix
         C << 1, 0, 0, 2, 3, 2;
         Eigen::VectorXd cl(3); // Constraint limits
@@ -63,7 +84,7 @@ int main() {
         cost << 3, 5;
         SimplexMethod opt(true /* maximize */, C, cl, cost);
         auto result = opt.Solve();
-        PrintSolution(5, result);
+        PrintSolution(7, result);
     }
     return 0;
 }
