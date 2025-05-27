@@ -6,18 +6,21 @@
 #include <sstream>
 #include <iomanip>
 
-/// @brief 
+/// @brief Interface for optimizer class that maximizes/minimizes linear programs (LP). Uses Simplex method under the hood.
 class Optimizer {
     public:
-        /// @brief 
-        /// @param cost 
+        /// @brief Default constructor.
+        Optimizer() = default;
+
+        /// @brief Add maximization cost term to the problem.
+        /// @param cost The cost function coefficients.
         void MaximizeCost(const std::vector<double>& cost) {
             cost_function_ = cost;
             maximize_ = true;
         }
 
-        /// @brief 
-        /// @param cost 
+        /// @brief Add minimization cost term to the problem.
+        /// @param cost The cost function coefficients.
         void MinimizeCost(const std::vector<double>& cost) {
             std::vector<double> negated_cost;
             std::transform(cost.begin(), cost.end(), std::back_inserter(negated_cost), [](double n) { return -n; });
@@ -25,17 +28,17 @@ class Optimizer {
             maximize_ = false;
         }
 
-        /// @brief 
-        /// @param constraint 
-        /// @param constraint_limit 
+        /// @brief Adds a <= (less than or equal to) constraint to the optimization problem.
+        /// @param constraint Vector of constraint coefficients.
+        /// @param constraint_limit Constraint limit.
         void AddLTConstraint(const std::vector<double>& constraint, double constraint_limit) {
             constraints_.push_back(constraint);
             constraint_limits_.push_back(constraint_limit);
         }
 
-        /// @brief 
-        /// @param constraint 
-        /// @param constraint_limit 
+        /// @brief Adds a >= (greater than or equal to) constraint to the optimization problem.
+        /// @param constraint Vector of constraint coefficients.
+        /// @param constraint_limit Constraint limit.
         void AddGTConstraint(const std::vector<double>& constraint, double constraint_limit) {
             // Negate the LHS and RHS
             std::vector<double> negated_constraint;
@@ -44,9 +47,9 @@ class Optimizer {
             constraint_limits_.push_back(-constraint_limit);
         }
 
-        /// @brief 
-        /// @return 
-        std::optional<std::tuple<Eigen::VectorXd,uint32_t>> Solve() {
+        /// @brief Runs the solver to optimize the LP.
+        /// @return Optional tuple of the optimized solution and the computed optimum value (if the problem can be solved).
+        std::optional<std::tuple<Eigen::VectorXd, uint32_t>> Solve() {
             // First print the optimization probelm
             PrintProblem();
             uint32_t num_variables = cost_function_.size();
@@ -67,7 +70,7 @@ class Optimizer {
         return simplex_->Solve();
         }
 
-        /// @brief 
+        /// @brief Helper function to print the LP (i.e. the constrained optimization problem).
         void PrintProblem() {
             // Pretty print optimization problem
             if (cost_function_.empty()) {
@@ -106,14 +109,14 @@ class Optimizer {
             std::cout << objective_func.str() << std::endl;
         }
     private:
-        /// @brief 
+        /// @brief Indicates whether the LP is a maximization problem.
         bool maximize_ = true;
-        /// @brief 
+        /// @brief The LP cost function.
         std::vector<double> cost_function_;
-        /// @brief 
+        /// @brief The LP constraints (LHS).
         std::vector<std::vector<double>> constraints_;
-        /// @brief 
+        /// @brief The LP constraint limits (RHS).
         std::vector<double> constraint_limits_;
-        /// @brief 
+        /// @brief The Simplex class used to solve the LP.
         std::unique_ptr<SimplexMethod> simplex_;
 };

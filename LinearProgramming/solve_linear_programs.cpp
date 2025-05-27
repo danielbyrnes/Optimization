@@ -1,5 +1,8 @@
 #include "constrained_optimization.h"
 
+/// @brief Helper function to pretty print the optimized solution.
+/// @param test_number Test ID number.
+/// @param result Thje optimized result to print.
 void PrintSolution(uint32_t test_number, const std::optional<std::tuple<Eigen::VectorXd, uint32_t>>& result) {
     if (!result) {
         std::cout << "(" << test_number << ") ";
@@ -7,13 +10,14 @@ void PrintSolution(uint32_t test_number, const std::optional<std::tuple<Eigen::V
     }
     Eigen::VectorXd solution = std::get<0>(*result);
     uint32_t optimal_value = std::get<1>(*result);
-    std::cout << "###########################################" << std::endl;
+    std::cout << "############################################################" << std::endl;
     std::cout << "(" << test_number << ") ";
     std::cout << "Optimized solution: " << solution.transpose() << " ---> optimum @ " << optimal_value << std::endl;
-    std::cout << "###########################################\n" << std::endl;
+    std::cout << "############################################################\n" << std::endl;
 }
 
 int main() {
+    // Run a series of maximization/minimization problems to test the solver.
     {
         // 1. Test Maximization
         Optimizer optimizer;
@@ -75,7 +79,7 @@ int main() {
         PrintSolution(6, result);
     }
     {
-        // Test SimplexMethod class directly
+        // Test SimplexMethod class interface directly
         Eigen::MatrixXd C(3,2); // Constraint Matrix
         C << 1, 0, 0, 2, 3, 2;
         Eigen::VectorXd cl(3); // Constraint limits
