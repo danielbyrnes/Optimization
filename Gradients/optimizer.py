@@ -7,16 +7,19 @@ import matplotlib.pyplot as plt
 
 class GradientDescent:
     def __init__(self):
-        self.alpha = 1
+        self.alpha = 1e-3
 
     def compute_step(self, f, a, x):
         Jt = jnp.transpose(jax.jacfwd(f, argnums=0)(a,x))
-        return self.alpha * jnp.matmul(Jt, f(a,x))
+        return -self.alpha * jnp.matmul(Jt, f(a,x))
     
     def estimate(self, f, params):
         a = params['a']
         x = params['x']
-        return a + self.compute_step(a, x)
+        return a + self.compute_step(f, a, x)
+    
+    def lambda_history(self):
+        pass
 
 class LevenbergMarquardt:
     def __init__(self):
@@ -24,8 +27,6 @@ class LevenbergMarquardt:
         self.lambda_history = []
         self.lam_inflation_factor = 2
         self.lam_deflation_factor = 3
-        self.max_iterations = 10
-        self.convergence_threshold = 1e-8
 
     def compute_step(self, f, a, x):
         # g(x) = ||f(x)||^2
@@ -54,6 +55,16 @@ class LevenbergMarquardt:
     def lambda_history(self):
         return self.lambda_history
     
+
+class Optimizer:
+    def __init__(self, use_lm_opt : bool = True):
+        self.max_iterations = 1000
+        self.convergence_threshold = 1e-8
+        if use_lm_opt:
+            self.opt_method = LevenbergMarquardt()
+        else:
+            self.opt_method = GradientDescent()
+
     def optimize(self, loss, a_init : jnp.array, t : jnp.array, plot_opt_results):
         residuals = np.zeros((self.max_iterations,1))
         coeffs = np.zeros((self.max_iterations, a_init.shape[0]))
@@ -65,7 +76,7 @@ class LevenbergMarquardt:
                it < self.max_iterations):
             residuals[it] = jnp.linalg.norm(loss(ak,t))
             coeffs[it,:] = ak
-            ak = self.estimate(loss, {'a':ak, 'x':t})
+            ak = self.opt_method.estimate(loss, {'a':ak, 'x':t})
             if it > 0:
                 residual_delta = jnp.linalg.norm(residuals[it]-residuals[it-1])
             it += 1
@@ -83,7 +94,7 @@ class LevenbergMarquardt:
         axes[0].plot(residuals[:num_iterations])
         axes[0].set_title("Residual Error")
         axes[0].set_xlabel("Iteration")
-        axes[1].plot(self.lambda_history[:num_iterations])
+        # axes[1].plot(self.opt_method.lambda_history[:num_iterations])
         axes[1].set_title("Lambda Dampening Factor")
         axes[1].set_xlabel("Iteration")
         plt.show()
@@ -99,9 +110,6 @@ class LevenbergMarquardt:
                 err = jnp.dot(diff, diff)
                 Z[i,j] = jnp.log(err)
         ax.plot_surface(X, Y, Z, cmap='viridis', alpha=0.5)
-        print(residuals[:num_iterations])
-        print(coeffs[:num_iterations,3])
-        print(coeffs[:num_iterations,1])
         path_residuals = np.zeros(num_iterations)
         for i in range(num_iterations):
             diff = loss(jnp.array([ak[0], coeffs[i,1], ak[2], coeffs[i,3]]), t)

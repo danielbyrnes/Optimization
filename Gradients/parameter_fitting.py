@@ -4,7 +4,7 @@ import jax
 import jax.numpy as jnp
 from jax import random
 
-from optimizer import LevenbergMarquardt
+from optimizer import Optimizer
 
 class DataGenerator:
     def __init__(self, coefficients : jnp.array):
@@ -65,8 +65,8 @@ def run_model_fitting(subkey):
         initial_coeffs = jnp.abs(random.normal(subkey, shape=(4,)))
         print(f"True coefficients: {a} / initial guess: {initial_coeffs}")
         t = jnp.linspace(0, 100, 500)
-        lm_opt = LevenbergMarquardt()
-        coeffs = lm_opt.optimize(loss, initial_coeffs, t, plot_opt_results=True)
+        opt = Optimizer(use_lm_opt=False)
+        coeffs = opt.optimize(loss, initial_coeffs, t, plot_opt_results=True)
         plot_data(generator.times, generator.values, generator.measurements, coeffs[-1,:])
         
     fit_model()
