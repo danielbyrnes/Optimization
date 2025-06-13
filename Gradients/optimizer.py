@@ -17,9 +17,6 @@ class GradientDescent:
         a = params['a']
         x = params['x']
         return a + self.compute_step(f, a, x)
-    
-    def lambda_history(self):
-        pass
 
 class LevenbergMarquardt:
     def __init__(self):
@@ -52,10 +49,6 @@ class LevenbergMarquardt:
             self.lam *= self.lam_inflation_factor
         return ak
     
-    def lambda_history(self):
-        return self.lambda_history
-    
-
 class Optimizer:
     def __init__(self, use_lm_opt : bool = True):
         self.max_iterations = 1000
@@ -71,7 +64,7 @@ class Optimizer:
         ak = a_init
         it = 0
         residual_delta = float('inf')
-        while ((jnp.linalg.norm(loss(ak,t)) > self.convergence_threshold or
+        while ((jnp.linalg.norm(loss(ak,t)) > self.convergence_threshold and
                residual_delta > self.convergence_threshold) and 
                it < self.max_iterations):
             residuals[it] = jnp.linalg.norm(loss(ak,t))
@@ -84,19 +77,22 @@ class Optimizer:
         if plot_opt_results:
             self.plot_results(it, loss, residuals, coeffs, t)
 
-        return coeffs[:it,:]
+        return (coeffs[:it,:], it)
     
     def plot_results(self, num_iterations, loss, residuals, coeffs, t):
         ak = coeffs[num_iterations-1,:]
-        print(f"Converged in {num_iterations} iterations with loss {jnp.linalg.norm(loss(ak,t))}")
-        print(f"Final coefficients: {coeffs[num_iterations-1,:]}")
+        optimization_method : str = "Gradient Descent"
+        if isinstance(self.opt_method, LevenbergMarquardt):
+            optimization_method = "Levenberg-Marquardt"
         fig, axes = plt.subplots(1,2)
         axes[0].plot(residuals[:num_iterations])
         axes[0].set_title("Residual Error")
         axes[0].set_xlabel("Iteration")
-        # axes[1].plot(self.opt_method.lambda_history[:num_iterations])
+        if hasattr(self.opt_method, 'lambda_history'):
+            axes[1].plot(self.opt_method.lambda_history[:num_iterations])
         axes[1].set_title("Lambda Dampening Factor")
         axes[1].set_xlabel("Iteration")
+        plt.suptitle(f"Method: {optimization_method}")
         plt.show()
         
         fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
@@ -119,4 +115,5 @@ class Optimizer:
         ax.set_ylabel("a3")
         ax.set_zlabel("log-loss")
         plt.legend()
+        plt.title(f"Method: {optimization_method}")
         plt.show()

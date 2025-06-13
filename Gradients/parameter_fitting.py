@@ -30,7 +30,10 @@ class DataGenerator:
         t = jnp.linspace(0, 100, 500)
         return (t, model(self.coefficients, t))
     
-def plot_data(times, values, measurements, parameter_estimates):
+def plot_data(times, values, measurements, parameter_estimates, use_levenberg_marquardt):
+    optimization_method : str = "Gradient Descent"
+    if use_levenberg_marquardt:
+        optimization_method = "Levenberg-Marquardt"
     fig, axes = plt.subplots(1,2)
     axes[0].plot(times, values, label="Ground Truth", color="green")
     axes[0].scatter(times, measurements, label="Measurements", s=2, color='red')
@@ -41,6 +44,7 @@ def plot_data(times, values, measurements, parameter_estimates):
     for ax in axes:
         ax.legend()
     plt.tight_layout()
+    plt.suptitle(f"Method: {optimization_method}")
     plt.show()
 
 def model(a: jnp.array, t : jnp.array):
@@ -50,7 +54,7 @@ def model(a: jnp.array, t : jnp.array):
     '''
     return a[0] * jnp.exp(-t/a[1]) + a[2] * t * jnp.exp(-t / a[3])
 
-def run_model_fitting(subkey):
+def run_model_fitting(subkey, use_levenberg_marquardt = True):
     a = jnp.array([3.9, 2.8, 2.0, 10.])
     generator = DataGenerator(a)
     generator.generate()
@@ -63,19 +67,27 @@ def run_model_fitting(subkey):
     def fit_model():
         # Do the initial estimates need to be positive?
         initial_coeffs = jnp.abs(random.normal(subkey, shape=(4,)))
-        print(f"True coefficients: {a} / initial guess: {initial_coeffs}")
+        print(f"True coefficients: {a}")
+        print(f"Initial guess: {initial_coeffs}")
         t = jnp.linspace(0, 100, 500)
-        opt = Optimizer(use_lm_opt=False)
-        coeffs = opt.optimize(loss, initial_coeffs, t, plot_opt_results=True)
-        plot_data(generator.times, generator.values, generator.measurements, coeffs[-1,:])
-        
+        opt = Optimizer(use_lm_opt=use_levenberg_marquardt)
+        (coeffs, num_iters) = opt.optimize(loss, initial_coeffs, t, plot_opt_results=True)
+        print(f"Final coefficients: {coeffs[num_iters-1,:]}")
+        print(f"Converged in {num_iters} iterations with loss {jnp.linalg.norm(loss(coeffs[num_iters-1,:],t))}")
+        plot_data(generator.times, 
+                  generator.values, 
+                  generator.measurements, 
+                  coeffs[-1,:],
+                  use_levenberg_marquardt)
+
     fit_model()
 
 def main():
     subkey = random.PRNGKey(234)
     for i in range(3):
         _, subkey = random.split(subkey)
-        run_model_fitting(subkey)
+        for val in (True, False):
+            run_model_fitting(subkey, use_levenberg_marquardt=val)
 
 if __name__ == '__main__':
     main()
